@@ -1,0 +1,4 @@
+Python is a programming language that lets you work quickly and integrate systems
+more effectively. Python is easy to learn, and the standard library is large.
+Many developers use Python for automation, data analysis and web development!
+Why do so many people love it? Because the code is readable and the community is friendly.
