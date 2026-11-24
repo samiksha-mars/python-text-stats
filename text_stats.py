@@ -61,3 +61,50 @@ def analyze(text, top=10, skip_stopwords=False, wpm=DEFAULT_WPM):
         "reading_time_minutes": math.ceil(word_count / wpm) if word_count else 0,
         "top_words": top_words(text, top, skip_stopwords),
     }
+
+
+def format_report(stats):
+    lines = [
+        f"Words:                {stats['words']}",
+        f"Lines:                {stats['lines']}",
+        f"Characters:           {stats['characters']}",
+        f"Characters (no ws):   {stats['characters_no_spaces']}",
+        f"Sentences:            {stats['sentences']}",
+        f"Avg word length:      {stats['avg_word_length']}",
+        f"Avg sentence length:  {stats['avg_sentence_length']} words",
+        f"Reading time:         ~{stats['reading_time_minutes']} min",
+    ]
+    if stats["top_words"]:
+        lines.append("\nTop words:")
+        width = max(len(word) for word, _ in stats["top_words"])
+        lines += [f"  {word:<{width}}  {count}" for word, count in stats["top_words"]]
+    return "\n".join(lines)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Show statistics about a text file.")
+    parser.add_argument("file", nargs="?", help="text file to analyze (default: stdin)")
+    parser.add_argument("-n", "--top", type=int, default=10, help="number of top words to show")
+    parser.add_argument("--no-stopwords", action="store_true",
+                        help="ignore common words like 'the' and 'and' in the top list")
+    parser.add_argument("--wpm", type=int, default=DEFAULT_WPM, help="reading speed in words/minute")
+    parser.add_argument("--json", action="store_true", help="print the results as JSON")
+    args = parser.parse_args(argv)
+
+    if args.file:
+        try:
+            with open(args.file, encoding="utf-8") as f:
+                text = f.read()
+        except OSError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+    else:
+        text = sys.stdin.read()
+
+    stats = analyze(text, args.top, args.no_stopwords, args.wpm)
+    print(json.dumps(stats, indent=2) if args.json else format_report(stats))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
