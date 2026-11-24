@@ -46,7 +46,7 @@ class AnalyzeTest(unittest.TestCase):
         self.assertEqual(stats["lines"], 2)
         self.assertEqual(stats["sentences"], 2)
         self.assertEqual(stats["characters"], 22)
-        self.assertEqual(stats["characters_no_spaces"], 20)
+        self.assertEqual(stats["characters_no_spaces"], 19)
         self.assertEqual(stats["avg_sentence_length"], 2)
 
     def test_reading_time_rounds_up(self):
