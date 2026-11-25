@@ -90,6 +90,10 @@ def main(argv=None):
     parser.add_argument("--wpm", type=int, default=DEFAULT_WPM, help="reading speed in words/minute")
     parser.add_argument("--json", action="store_true", help="print the results as JSON")
     args = parser.parse_args(argv)
+    if args.wpm < 1:
+        parser.error("--wpm must be at least 1")
+    if args.top < 0:
+        parser.error("--top cannot be negative")
 
     if args.file:
         try:

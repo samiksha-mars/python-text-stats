@@ -104,6 +104,13 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("not a UTF-8 text file", err)
 
+    def test_invalid_wpm_and_top_are_rejected(self):
+        path = self.write("a.txt", b"Hello world.")
+        for option, value in (("--wpm", "0"), ("--wpm", "-5"), ("--top", "-1")):
+            with self.assertRaises(SystemExit) as ctx:
+                self.run_main(path, option, value)
+            self.assertEqual(ctx.exception.code, 2)
+
 
 if __name__ == "__main__":
     unittest.main()
