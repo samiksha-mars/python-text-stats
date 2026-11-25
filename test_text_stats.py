@@ -1,6 +1,11 @@
+import io
+import json
+import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 
-from text_stats import analyze, count_sentences, format_report, top_words, words
+from text_stats import analyze, count_sentences, format_report, main, top_words, words
 
 
 class WordsTest(unittest.TestCase):
@@ -63,6 +68,41 @@ class AnalyzeTest(unittest.TestCase):
         report = format_report(analyze("apple apple pear"))
         self.assertIn("Top words:", report)
         self.assertIn("apple", report)
+
+
+class MainTest(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+
+    def write(self, name, data):
+        path = Path(self.tmp.name) / name
+        path.write_bytes(data)
+        return str(path)
+
+    def run_main(self, *argv):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(list(argv))
+        return code, out.getvalue(), err.getvalue()
+
+    def test_json_output(self):
+        path = self.write("a.txt", b"Hello world.")
+        code, out, _ = self.run_main(path, "--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(out)["words"], 2)
+
+    def test_missing_file(self):
+        code, _, err = self.run_main(str(Path(self.tmp.name) / "missing.txt"))
+        self.assertEqual(code, 1)
+        self.assertIn("Error:", err)
+
+    def test_non_utf8_file(self):
+        path = self.write("binary.dat", b"\xff\xfe\x00binary")
+        code, _, err = self.run_main(path)
+        self.assertEqual(code, 1)
+        self.assertIn("not a UTF-8 text file", err)
 
 
 if __name__ == "__main__":

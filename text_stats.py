@@ -98,8 +98,15 @@ def main(argv=None):
         except OSError as e:
             print(f"Error: {e}", file=sys.stderr)
             return 1
+        except UnicodeDecodeError:
+            print(f"Error: {args.file} is not a UTF-8 text file", file=sys.stderr)
+            return 1
     else:
-        text = sys.stdin.read()
+        try:
+            text = sys.stdin.read()
+        except UnicodeDecodeError:
+            print("Error: input is not UTF-8 text", file=sys.stderr)
+            return 1
 
     stats = analyze(text, args.top, args.no_stopwords, args.wpm)
     print(json.dumps(stats, indent=2) if args.json else format_report(stats))
